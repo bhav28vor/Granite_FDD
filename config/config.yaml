@@ -1,0 +1,92 @@
+# Production Configuration for Franchisee Enrichment Pipeline
+
+pipeline:
+  name: "franchisee-enrichment-pipeline"
+  version: "1.0.0"
+  environment: "development"
+
+processing:
+  max_concurrent_requests: 3
+  batch_size: 5
+  rate_limit_delay_seconds: 2
+  sample_size: 10
+  max_retries: 3
+  retry_delay_seconds: 1
+  timeout_seconds: 30
+
+data_quality:
+  minimum_confidence_threshold: 0.5
+  high_confidence_threshold: 0.8
+  required_fields:
+    - "franchisee_owner"
+    - "corporate_address"
+  validation:
+    phone_regex: '^[\+]?[1-9][\d]{0,15}$'
+    email_regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    zip_regex: '^\d{5}(-\d{4})?$'
+
+enrichment_sources:
+  business_registry:
+    enabled: true
+    timeout_seconds: 10
+    priority: 1
+  google_places:
+    enabled: true
+    timeout_seconds: 15
+    priority: 2
+  linkedin:
+    enabled: true
+    timeout_seconds: 5
+    priority: 3
+  corporate_database:
+    enabled: true
+    timeout_seconds: 10
+    priority: 4
+
+file_paths:
+  input_file: "data/Golden Chick_DE_Takehome.xlsx"
+  output_json: "data/enriched_franchisees.json"
+  output_excel: "data/enriched_franchisees_enhanced.xlsx"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  console_output: true
+  file_output: true
+  log_file: "logs/enrichment_pipeline.log"
+  track_performance: true
+  performance_log: "logs/performance_metrics.json"
+
+monitoring:
+  track_api_calls: true
+  track_processing_time: true
+  track_success_rates: true
+  track_data_quality: true
+  alerts:
+    low_success_rate_threshold: 0.8
+    high_processing_time_threshold: 300
+    low_confidence_rate_threshold: 0.7
+
+environments:
+  development:
+    processing:
+      sample_size: 10
+      max_concurrent_requests: 2
+    logging:
+      level: "DEBUG"
+  staging:
+    processing:
+      sample_size: 50
+      max_concurrent_requests: 5
+    logging:
+      level: "INFO"
+  production:
+    processing:
+      sample_size: null
+      max_concurrent_requests: 10
+      batch_size: 20
+    logging:
+      level: "WARNING"
+    monitoring:
+      alerts:
+        low_success_rate_threshold: 0.95
