@@ -51,8 +51,8 @@ Confidence: 81%
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/franchisee-enrichment
-cd franchisee-enrichment
+git clone https://github.com/bhav28vor/Granite_FDD.git
+cd Granite_FDD
 
 # Set up environment
 python3 -m venv venv
