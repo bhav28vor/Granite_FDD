@@ -1,9 +1,3 @@
-# src/enrichment_pipeline_production.py
-"""
-Production-Ready Franchisee Enrichment Pipeline
-Optimized for reliability, monitoring, and business deployment
-"""
-
 import pandas as pd
 import asyncio
 import aiohttp
@@ -16,16 +10,12 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-# Import our configuration system
 from config import load_config, validate_config
 
 def setup_logging(config):
-    """Setup logging based on configuration"""
-    # Create logs directory if it doesn't exist
     log_dir = Path(config.logging.log_file).parent
     log_dir.mkdir(exist_ok=True)
     
-    # Configure logging
     logging.basicConfig(
         level=getattr(logging, config.logging.level),
         format=config.logging.format,
@@ -34,7 +24,6 @@ def setup_logging(config):
     
     logger = logging.getLogger(__name__)
     
-    # Console handler
     if config.logging.console_output:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(getattr(logging, config.logging.level))
@@ -42,7 +31,6 @@ def setup_logging(config):
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
     
-    # File handler
     if config.logging.file_output:
         file_handler = logging.FileHandler(config.logging.log_file)
         file_handler.setLevel(getattr(logging, config.logging.level))
@@ -54,7 +42,6 @@ def setup_logging(config):
 
 @dataclass
 class FranchiseeRecord:
-    """Input franchisee record from FDD"""
     fdd: str
     fdd_store_no: str
     fdd_location_name: str
@@ -68,7 +55,7 @@ class FranchiseeRecord:
 
 @dataclass
 class EnrichedFranchiseeRecord:
-    """Complete enriched franchisee record with production tracking"""
+    
     # Original fields
     fdd: str
     fdd_store_no: str
@@ -103,7 +90,7 @@ class EnrichedFranchiseeRecord:
             self.enrichment_timestamp = datetime.now().isoformat()
 
 class EnhancedEntityClassifier:
-    """Production-ready entity classification with detailed analytics"""
+    
     
     BUSINESS_INDICATORS = [
         'LLC', 'INC', 'CORP', 'CORPORATION', 'LTD', 'LIMITED', 
@@ -114,7 +101,7 @@ class EnhancedEntityClassifier:
     
     @classmethod
     def classify_entity(cls, franchisee_name: str) -> Dict[str, any]:
-        """Enhanced classification with confidence metrics"""
+        
         name_upper = franchisee_name.upper()
         
         # Count business indicators
@@ -127,7 +114,6 @@ class EnhancedEntityClassifier:
         ]
         individual_score = sum(individual_patterns)
         
-        # Determine classification
         if business_score > 0:
             entity_type = 'business'
             confidence = min(0.95, 0.7 + (business_score * 0.1))
@@ -135,7 +121,7 @@ class EnhancedEntityClassifier:
             entity_type = 'individual'
             confidence = 0.85
         else:
-            entity_type = 'business'  # Default assumption
+            entity_type = 'business'  # Default 
             confidence = 0.6
         
         return {
@@ -163,7 +149,6 @@ class EnhancedEntityClassifier:
         return "", name
 
 class ProductionDataEnricher:
-    """Production-ready data enricher with comprehensive monitoring"""
     
     def __init__(self, config, logger):
         self.config = config
@@ -186,25 +171,17 @@ class ProductionDataEnricher:
             await self.session.close()
     
     async def enrich_record(self, record: FranchiseeRecord) -> EnrichedFranchiseeRecord:
-        """Enrich a single record with comprehensive monitoring"""
         self.processing_start_time = time.time()
         self.source_urls = []
         self.enrichment_sources_used = 0
         
         self.logger.info(f"🔍 Enriching: {record.franchisee} ({record.city}, {record.state})")
-        
-        # Initialize enriched record
         enriched = EnrichedFranchiseeRecord(**asdict(record))
         enriched.pipeline_version = self.config.version
-        
-        # Enhanced entity classification
         classification = EnhancedEntityClassifier.classify_entity(record.franchisee)
         entity_type = classification['type']
         entity_confidence = classification['confidence']
-        
         self.logger.debug(f"📊 Entity: {entity_type} (confidence: {entity_confidence:.2f})")
-        
-        # Execute enrichment tasks based on enabled sources
         enrichment_results = await self._execute_enrichment_tasks(record, entity_type)
         
         # Merge all enrichment results
@@ -472,7 +449,6 @@ class ProductionDataEnricher:
         return round(max(0.0, quality_score), 3)
 
 class ProductionFranchiseeEnrichmentPipeline:
-    """Production-ready pipeline with comprehensive monitoring and error handling"""
     
     def __init__(self, config_path: str = "config/config.yaml", environment: str = None):
         # Load and validate configuration
@@ -483,7 +459,6 @@ class ProductionFranchiseeEnrichmentPipeline:
         if config_issues:
             raise ValueError(f"Configuration validation failed: {config_issues}")
         
-        # Setup logging
         self.logger = setup_logging(self.config)
         
         # Performance metrics
@@ -502,7 +477,7 @@ class ProductionFranchiseeEnrichmentPipeline:
                         f"{self.config.processing.batch_size} batch size")
     
     def load_data(self, file_path: str = None) -> List[FranchiseeRecord]:
-        """Load franchisee data with enhanced error handling"""
+        """Load franchisee data with boosted error handling"""
         input_file = file_path or self.config.file_paths.input_file
         
         try:
@@ -644,7 +619,7 @@ class ProductionFranchiseeEnrichmentPipeline:
                     'Corporate Email': record.corporate_email,
                     'LinkedIn': record.linkedin,
                     'url Sources': record.url_sources,
-                    # Additional metadata for analysis
+                    #metadata for analysis
                     'Confidence Score': record.confidence_score,
                     'Data Quality Score': record.data_quality_score,
                     'Processing Time (s)': record.processing_time_seconds,
@@ -682,23 +657,25 @@ class ProductionFranchiseeEnrichmentPipeline:
         except Exception as e:
             self.logger.error(f"❌ Failed to save results: {e}")
             raise
-
 async def main():
-    """Production pipeline execution with comprehensive error handling"""
     try:
-        # Initialize pipeline
         pipeline = ProductionFranchiseeEnrichmentPipeline()
         
-        # Load data
+        pipeline.config.environment = "production"
+        pipeline.config.processing.sample_size = None  
+        pipeline.config.processing.max_concurrent_requests = 10
+        pipeline.config.processing.batch_size = 20
+        pipeline.logger.info(f"🚀 FORCED Environment: production")
+        pipeline.logger.info(f"📊 FORCED Sample size: ALL RECORDS (189)")
+        pipeline.logger.info(f"⚙️  FORCED Config: 10 concurrent, 20 batch size")
+        
         records = pipeline.load_data()
         
-        # Process records
         enriched_records = await pipeline.process_records(records)
         
-        # Save results
         output_file = pipeline.save_results(enriched_records)
         
-        # Generate final summary report
+        # final summary report
         print("\n" + "="*70)
         print("🎯 PRODUCTION ENRICHMENT PIPELINE SUMMARY")
         print("="*70)
@@ -727,7 +704,7 @@ async def main():
                 field_display = field.replace('_', ' ').title()
                 print(f"   {field_display}: {count}/{len(enriched_records)} ({percentage:.1f}%)")
             
-            # Top quality record
+
             best_record = max(enriched_records, key=lambda r: r.confidence_score)
             print(f"\n🏆 Highest Quality Enrichment:")
             print(f"   Franchisee: {best_record.franchisee}")

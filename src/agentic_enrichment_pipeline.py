@@ -482,11 +482,10 @@ class AgenticEnrichmentPipeline:
     async def process_records_agentic(self, records: List[dict]) -> List[AgenticEnrichmentResult]:
         """Process records using LangGraph agentic workflow"""
         results = []
-        sample_size = self.config.processing.sample_size or len(records)
+        sample_size = len(records)
         
-        if len(records) > sample_size:
-            records = records[:sample_size]
-            self.logger.info(f"🎯 Processing {len(records)} records with agentic workflow")
+        
+        self.logger.info(f"🎯 Processing {len(records)} records with agentic workflow")
         
         for i, record in enumerate(records):
             start_time = time.time()
@@ -620,7 +619,7 @@ async def main():
 
     # Rename columns and convert to records
     df_mapped = df.rename(columns=column_mapping)
-    records = df_mapped.head(8).to_dict('records')  # Process 8 records for demo
+    records = df_mapped.to_dict('records')  # Process 8 records for demo
     
     # Process with agentic workflow
     start_time = time.time()

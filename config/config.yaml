@@ -3,13 +3,13 @@
 pipeline:
   name: "franchisee-enrichment-pipeline"
   version: "1.0.0"
-  environment: "development"
+  environment: "staging"
 
 processing:
   max_concurrent_requests: 3
   batch_size: 5
   rate_limit_delay_seconds: 2
-  sample_size: 10
+  sample_size: null
   max_retries: 3
   retry_delay_seconds: 1
   timeout_seconds: 30
